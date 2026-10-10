@@ -226,6 +226,7 @@ void writeExampleTable() {
 }
 
 int main() {
+
     cout << "Compiler Symbol Table Performance Evaluation\n";
     cout << "=============================================\n\n";
 
@@ -235,11 +236,12 @@ int main() {
         HashType::XXHASH
     };
 
-    vector<CollisionMethod> collisionMethods = {
+        vector<CollisionMethod> collisionMethods = {
         CollisionMethod::LINEAR,
         CollisionMethod::QUADRATIC,
         CollisionMethod::DOUBLE_HASHING,
-        CollisionMethod::ROBIN_HOOD
+        CollisionMethod::ROBIN_HOOD,
+        CollisionMethod::HYBRID
     };
 
     vector<double> loadFactors = {
