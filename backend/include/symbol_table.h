@@ -4,7 +4,7 @@
 #include "hash_functions.h"
 #include <string>
 #include <vector>
-#include<cstdint>
+#include <cstdint>
 
 enum class CollisionMethod {
     LINEAR,
@@ -78,7 +78,7 @@ public:
     size_t getTotalProbes() const;
     size_t getMaxProbeDistance() const;
     size_t getElementCount() const;
-    size_t getRehashCount() const;
+        size_t getRehashCount() const;
     size_t getKeywordHits() const;
 
     double getAverageProbes() const;

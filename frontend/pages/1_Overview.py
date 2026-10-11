@@ -44,6 +44,7 @@ with col2:
         <p>Quadratic Probing</p>
         <p>Double Hashing</p>
         <p>Robin Hood Hashing</p>
+        <p><b>Adaptive Robin Hood Double Hashing (Hybrid)</b></p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -51,6 +52,23 @@ st.markdown(
     '<div class="section-title">Experimental Matrix</div>',
     unsafe_allow_html=True
 )
+st.markdown(
+    '<div class="section-title">Proposed Hybrid Method</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown("""
+<div class="algorithm-card">
+    <h3>Adaptive Robin Hood Double Hashing</h3>
+    <p><b>Phase 1 (sparse table):</b> quadratic probing while the load
+    factor is below 0.5, which keeps inserts cheap.</p>
+    <p><b>Phase 2 (dense table):</b> a one-time rehash into Robin Hood
+    insertion with a double-hashing probe sequence, which keeps the
+    worst-case probe length short at high load.</p>
+    <p><b>Keyword pre-hash:</b> reserved words are resolved through a
+    small collision-free table before the main table is searched.</p>
+</div>
+""", unsafe_allow_html=True)
 
 matrix = (
     results
