@@ -4,12 +4,14 @@
 #include "hash_functions.h"
 #include <string>
 #include <vector>
+#include <cstdint>
 
 enum class CollisionMethod {
     LINEAR,
     QUADRATIC,
     DOUBLE_HASHING,
-    ROBIN_HOOD
+    ROBIN_HOOD,
+    HYBRID
 };
 
 struct Symbol {
@@ -44,6 +46,21 @@ private:
 
     HashType hashType;
     CollisionMethod collisionMethod;
+        // --- hybrid method state ---
+    bool robinHoodPhase;
+    size_t rehashCount;
+    size_t keywordHits;
+    uint64_t keywordSeed;
+    std::vector<int> keywordSlots;
+
+    static constexpr double HYBRID_SWITCH_LOAD = 0.5;
+
+    bool insertHybrid(const Symbol& symbol);
+    bool searchHybrid(const std::string& name, Symbol& result) const;
+    bool insertRobinHoodDouble(TableEntry current);
+    void switchToRobinHoodDouble();
+    void buildKeywordTable();
+    bool isKeyword(const std::string& name) const;
 
     size_t primaryIndex(const std::string& key) const;
     size_t secondaryHash(const std::string& key) const;
@@ -61,6 +78,8 @@ public:
     size_t getTotalProbes() const;
     size_t getMaxProbeDistance() const;
     size_t getElementCount() const;
+        size_t getRehashCount() const;
+    size_t getKeywordHits() const;
 
     double getAverageProbes() const;
     double getLoadFactor() const;
