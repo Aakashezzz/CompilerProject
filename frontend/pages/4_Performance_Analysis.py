@@ -147,6 +147,31 @@ st.plotly_chart(
     fig3,
     use_container_width=True
 )
+st.markdown("---")
+
+st.subheader("Worst-Case Probe Length")
+
+max_probe_data = (
+    filtered
+    .groupby(["LoadFactor", "CollisionMethod"])["MaxProbeDistance"]
+    .mean()
+    .reset_index()
+)
+
+fig_max = px.line(
+    max_probe_data,
+    x="LoadFactor",
+    y="MaxProbeDistance",
+    color="CollisionMethod",
+    markers=True,
+    log_y=True,
+    title="Maximum Probe Distance vs Load Factor"
+)
+
+st.plotly_chart(
+    fig_max,
+    use_container_width=True
+)
 
 st.markdown("---")
 

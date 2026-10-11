@@ -41,10 +41,19 @@ method = st.selectbox(
         "Linear Probing",
         "Quadratic Probing",
         "Double Hashing",
-        "Robin Hood Hashing"
+        "Robin Hood Hashing",
+        "Adaptive Robin Hood Double Hashing"
     ]
 )
-
+load_factor = 0.0
+if method == "Adaptive Robin Hood Double Hashing":
+    load_factor = st.slider(
+        "Current table load factor",
+        min_value=0.1,
+        max_value=0.9,
+        value=0.3,
+        step=0.05
+    )
 def hash_value(text):
     digest = hashlib.sha256(
         text.encode()
@@ -58,7 +67,7 @@ def second_hash(text, size):
     return 1 + (value % (size - 1))
 
 
-def get_probe_sequence(text, size, method):
+def get_probe_sequence(text, size, method ,load_factor = 0.0):
     primary = hash_value(text) % size
 
     if method == "Linear Probing":
@@ -80,7 +89,18 @@ def get_probe_sequence(text, size, method):
             (primary + i * step) % size
             for i in range(size)
         ]
-
+    if method == "Adaptive Robin Hood Double Hashing":
+        if load_factor < 0.5:
+            # Phase 1: quadratic probing
+            return [
+                (primary + i * i) % size
+                for i in range(size)
+            ]
+        step = second_hash(text, size)
+        return [
+            (primary + i * step) % size
+            for i in range(size)
+        ]    
     return [
         (primary + i) % size
         for i in range(size)
@@ -90,7 +110,8 @@ def get_probe_sequence(text, size, method):
 sequence = get_probe_sequence(
     key,
     table_size,
-    method
+    method,
+    load_factor
 )
 
 primary = hash_value(key) % table_size
@@ -209,7 +230,14 @@ explanations = {
         "Uses a second hash value to determine the distance between successive probes.",
 
     "Robin Hood Hashing":
-        "Attempts to reduce probe-length inequality by allowing entries with shorter probe distances to be displaced."
+        "Attempts to reduce probe-length inequality by allowing entries with shorter probe distances to be displaced.",
+        
+    "Adaptive Robin Hood Double Hashing":
+        "Starts with quadratic probing while the table is below 50 percent load. "
+        "Once the load reaches 50%, the table is rehashed once and uses Robin Hood "
+        "insertion with a double-hashing step, which keeps the longest probe short. "
+        "Reserved keywords are resolved first through a small collision-free table "
+        "(not shown here). Move the load slider to see the probe path change."    
 }
 
 st.info(explanations[method])
