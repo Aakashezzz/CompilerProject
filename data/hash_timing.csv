@@ -1,0 +1,4 @@
+HashFunction,Repetitions,KeysPerRun,MedianMs,CI95Ms,MedianNanosecondsPerHash
+MurmurHash3 x64/128 (low 64 bits),10,50000,0.550833,0.179736,11.0167
+FNV-1a + avalanche,10,50000,1.1573,0.339385,23.146
+xxHash,10,50000,0.952137,0.111572,19.0428

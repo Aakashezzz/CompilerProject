@@ -31,7 +31,7 @@ with col1:
     <div class="algorithm-card">
         <h3>Hash Functions</h3>
         <p>MurmurHash3</p>
-        <p>FxHash</p>
+        <p>FNV-1a + avalanche</p>
         <p>xxHash</p>
     </div>
     """, unsafe_allow_html=True)
@@ -43,8 +43,9 @@ with col2:
         <p>Linear Probing</p>
         <p>Quadratic Probing</p>
         <p>Double Hashing</p>
-        <p>Robin Hood Hashing</p>
-        <p><b>Adaptive Robin Hood Double Hashing (Hybrid)</b></p>
+        <p>Robin Hood Hashing (linear probing)</p>
+        <p>Robin Hood + Double Hashing (full-scan misses)</p>
+        <p><b>Adaptive Quadratic-to-Robin-Hood (Hybrid)</b></p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -59,14 +60,13 @@ st.markdown(
 
 st.markdown("""
 <div class="algorithm-card">
-    <h3>Adaptive Robin Hood Double Hashing</h3>
-    <p><b>Phase 1 (sparse table):</b> quadratic probing while the load
-    factor is below 0.5, which keeps inserts cheap.</p>
-    <p><b>Phase 2 (dense table):</b> a one-time rehash into Robin Hood
-    insertion with a double-hashing probe sequence, which keeps the
-    worst-case probe length short at high load.</p>
-    <p><b>Keyword pre-hash:</b> reserved words are resolved through a
-    small collision-free table before the main table is searched.</p>
+    <h3>Adaptive Quadratic-to-Robin-Hood</h3>
+    <p><b>Phase 1:</b> triangular-number quadratic probing while the load
+    factor is below 0.5.</p>
+    <p><b>Phase 2 (dense table):</b> a one-time rehash into classical Robin Hood
+    insertion using linear probing and displacement-based swaps.</p>
+    <p><b>Keyword semantics:</b> reserved C++ keywords are rejected consistently
+    by every strategy; they are not inserted as ordinary identifiers.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -125,7 +125,12 @@ parameters = [
     "Total Probes",
     "Average Probe Distance",
     "Maximum Probe Distance",
-    "Load Factor"
+    "Load Factor",
+    "Median timing and approximate 95% CI",
+    "Unsuccessful-search P50 / P95 / maximum probes",
+    "Hash bucket distribution",
+    "std::unordered_map baseline",
+    "Table-array memory estimate and hybrid rehash count"
 ]
 
 cols = st.columns(4)
@@ -140,3 +145,5 @@ for i, parameter in enumerate(parameters):
             """,
             unsafe_allow_html=True
         )
+
+st.info("Open Research Evidence in the sidebar for dedicated charts of unsuccessful-search probe distributions, timing confidence intervals, hash quality, the std::unordered_map baseline, memory estimates, rehash counts, and correctness counters.")

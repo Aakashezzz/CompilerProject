@@ -1,0 +1,7 @@
+Variant,TargetLoadFactor,Repetitions,IdentifierOnlyMedianMs,IdentifierOnlyCI95Ms,KeywordAttemptsMedianMs,KeywordAttemptsCI95Ms,RejectedKeywordAttempts,AcceptedKeywordAttempts,FailedLookups
+Hybrid full,0.439453,10,1.10242,0.183285,0.003921,0.000215,200,0,0
+Hybrid without keyword filter,0.439453,10,0.173486,0.0678065,0.002148,0.000165,0,200,0
+Hybrid without duplicate checks (unique keys),0.439453,10,0.544539,0.122305,0.003881,0.0001955,200,0,0
+Hybrid without adaptive switch,0.439453,10,1.10891,0.099555,0.004131,0.000286,200,0,0
+Robin Hood double hashing from first insertion,0.439453,10,1.28707,0.221203,0.0042865,0.0002505,200,0,0
+Double hashing baseline (no adaptive phase),0.439453,10,1.1914,1.28909,0.0040815,0.0002545,200,0,0

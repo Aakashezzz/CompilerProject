@@ -1,4 +1,8 @@
 __pycache__/
 *.pyc
-backend/compiler_project
 venv/
+.venv/
+backend/compiler_project
+backend/compiler_project.exe
+backend/compiler_project_test
+backend/symbol_table_tests

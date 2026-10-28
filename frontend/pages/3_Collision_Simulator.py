@@ -1,6 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 import hashlib
+import math
 from utils import inject_css
 
 st.set_page_config(
@@ -14,8 +15,8 @@ inject_css()
 st.title(" Collision Resolution Simulator")
 
 st.markdown("""
-This simulator demonstrates how open-addressing techniques find
-alternative positions when the initial hash-table position is occupied.
+This simulator illustrates probe sequences, not the full C++ insertion algorithm or swap history.
+Its SHA-256 start index is for visualization only and is not the benchmark's configured hash function.
 """)
 
 col1, col2 = st.columns(2)
@@ -42,11 +43,12 @@ method = st.selectbox(
         "Quadratic Probing",
         "Double Hashing",
         "Robin Hood Hashing",
-        "Adaptive Robin Hood Double Hashing"
+        "Robin Hood Double Hashing",
+        "Adaptive Quadratic-to-Robin-Hood"
     ]
 )
 load_factor = 0.0
-if method == "Adaptive Robin Hood Double Hashing":
+if method == "Adaptive Quadratic-to-Robin-Hood":
     load_factor = st.slider(
         "Current table load factor",
         min_value=0.1,
@@ -64,7 +66,12 @@ def hash_value(text):
 
 def second_hash(text, size):
     value = hash_value(text)
-    return 1 + (value % (size - 1))
+    step = 1 + (value % (size - 1))
+    while math.gcd(step, size) != 1:
+        step += 1
+        if step >= size:
+            step = 1
+    return step
 
 
 def get_probe_sequence(text, size, method ,load_factor = 0.0):
@@ -78,29 +85,19 @@ def get_probe_sequence(text, size, method ,load_factor = 0.0):
 
     if method == "Quadratic Probing":
         return [
-            (primary + i * i) % size
+            (primary + (i * (i + 1) // 2)) % size
             for i in range(size)
         ]
 
-    if method == "Double Hashing":
+    if method in ("Double Hashing", "Robin Hood Double Hashing"):
         step = second_hash(text, size)
-
-        return [
-            (primary + i * step) % size
-            for i in range(size)
-        ]
-    if method == "Adaptive Robin Hood Double Hashing":
+        return [(primary + i * step) % size for i in range(size)]
+    if method == "Adaptive Quadratic-to-Robin-Hood":
         if load_factor < 0.5:
-            # Phase 1: quadratic probing
-            return [
-                (primary + i * i) % size
-                for i in range(size)
-            ]
-        step = second_hash(text, size)
-        return [
-            (primary + i * step) % size
-            for i in range(size)
-        ]    
+            # Phase 1: triangular-number quadratic probing.
+            return [(primary + (i * (i + 1) // 2)) % size for i in range(size)]
+        # Phase 2 uses classical Robin Hood linear probing (not double hashing).
+        return [(primary + i) % size for i in range(size)]    
     return [
         (primary + i) % size
         for i in range(size)
@@ -232,12 +229,13 @@ explanations = {
     "Robin Hood Hashing":
         "Attempts to reduce probe-length inequality by allowing entries with shorter probe distances to be displaced.",
         
-    "Adaptive Robin Hood Double Hashing":
+    "Adaptive Quadratic-to-Robin-Hood":
         "Starts with quadratic probing while the table is below 50 percent load. "
-        "Once the load reaches 50%, the table is rehashed once and uses Robin Hood "
-        "insertion with a double-hashing step, which keeps the longest probe short. "
-        "Reserved keywords are resolved first through a small collision-free table "
-        "(not shown here). Move the load slider to see the probe path change."    
+        "Once the load reaches 50%, the table is rehashed once and uses classical "
+        "Robin Hood insertion with linear probing. Reserved C++ keywords are rejected "
+        "consistently by all strategies. This visualization shows a probe path, not "
+        "the full insertion state of the benchmark table. Move the load slider to "
+        "see the illustrative probe path change."    
 }
 
 st.info(explanations[method])

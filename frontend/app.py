@@ -65,7 +65,7 @@ with col1:
     <div class="info-card">
         <h3>Hash Functions</h3>
         <p>
-        The project evaluates MurmurHash3, FxHash and xxHash
+        The project evaluates MurmurHash3, FNV-1a + avalanche, and xxHash
         for distributing compiler identifiers across a hash table.
         </p>
     </div>

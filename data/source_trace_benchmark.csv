@@ -1,0 +1,7 @@
+CollisionMethod,Repetitions,TokenOccurrences,KeywordTokens,UniqueScopeIdentifiers,MedianTraceMs,CI95Ms,FailedOperations,ScopeTransitions,DynamicRehashes
+Linear Probing,10,5403,1054,2256,4.84498,0.310251,0,382,91
+Quadratic Probing,10,5403,1054,2256,4.81734,0.513332,0,382,91
+Double Hashing,10,5403,1054,2256,4.86175,0.410728,0,382,91
+Robin Hood (Linear Probing),10,5403,1054,2256,5.11465,0.540854,0,382,91
+Robin Hood Double Hashing (full-scan misses),10,5403,1054,2256,4.81426,0.230556,0,382,91
+Adaptive Quadratic-to-Robin-Hood,10,5403,1054,2256,4.49923,0.387307,0,382,228

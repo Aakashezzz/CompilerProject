@@ -5,8 +5,8 @@ uint64_t murmurHash3(const std::string& key) {
     const uint8_t* data = reinterpret_cast<const uint8_t*>(key.data());
     size_t len = key.size();
 
-    uint64_t h1 = 0x9368e53c2f6af274ULL;
-    uint64_t h2 = 0x586dcd208f7cd3fdULL;
+    uint64_t h1 = 0;
+    uint64_t h2 = 0;
 
     const uint64_t c1 = 0x87c37b91114253d5ULL;
     const uint64_t c2 = 0x4cf5ad432745937fULL;
@@ -94,7 +94,7 @@ uint64_t murmurHash3(const std::string& key) {
     return h1;
 }
 
-uint64_t fxHash(const std::string& key) {
+uint64_t fnv1aAvalancheHash(const std::string& key) {
     uint64_t hash = 0xcbf29ce484222325ULL;
 
     for (unsigned char c : key) {
@@ -110,62 +110,43 @@ uint64_t fxHash(const std::string& key) {
 }
 
 uint64_t xxHash(const std::string& key) {
-    const uint64_t prime1 = 11400714785074694791ULL;
-    const uint64_t prime2 = 14029467366897019727ULL;
-    const uint64_t prime3 = 1609587929392839161ULL;
-    const uint64_t prime4 = 9650029242287828579ULL;
-    const uint64_t prime5 = 2870177450012600261ULL;
-
-    const unsigned char* data =
-        reinterpret_cast<const unsigned char*>(key.data());
-
-    size_t len = key.size();
-
-    uint64_t hash = prime5 + len;
-
-    while (len >= 8) {
-        uint64_t value = 0;
-
-        std::memcpy(&value, data, 8);
-
-        value *= prime2;
-        value = (value << 31) | (value >> 33);
-        value *= prime1;
-
-        hash ^= value;
-        hash = ((hash << 27) | (hash >> 37)) * prime1 + prime4;
-
-        data += 8;
-        len -= 8;
-    }
-
-    while (len >= 4) {
-        uint32_t value = 0;
-
-        std::memcpy(&value, data, 4);
-
-        hash ^= static_cast<uint64_t>(value) * prime1;
-        hash = ((hash << 23) | (hash >> 41)) * prime2 + prime3;
-
-        data += 4;
-        len -= 4;
-    }
-
-    while (len > 0) {
-        hash ^= static_cast<uint64_t>(*data) * prime5;
-        hash = ((hash << 11) | (hash >> 53)) * prime1;
-
-        data++;
-        len--;
-    }
-
-    hash ^= hash >> 33;
-    hash *= prime2;
-    hash ^= hash >> 29;
-    hash *= prime3;
-    hash ^= hash >> 32;
-
-    return hash;
+    // Canonical XXH64 algorithm, seed=0, little-endian input interpretation.
+    constexpr uint64_t P1 = 11400714785074694791ULL;
+    constexpr uint64_t P2 = 14029467366897019727ULL;
+    constexpr uint64_t P3 = 1609587929392839161ULL;
+    constexpr uint64_t P4 = 9650029242287828579ULL;
+    constexpr uint64_t P5 = 2870177450012600261ULL;
+    auto read32 = [](const unsigned char* p) -> uint32_t {
+        return static_cast<uint32_t>(p[0]) | (static_cast<uint32_t>(p[1]) << 8) |
+               (static_cast<uint32_t>(p[2]) << 16) | (static_cast<uint32_t>(p[3]) << 24);
+    };
+    auto read64 = [](const unsigned char* p) -> uint64_t {
+        uint64_t v=0; for (unsigned i=0;i<8;++i) v |= static_cast<uint64_t>(p[i]) << (8*i); return v;
+    };
+    auto round = [](uint64_t acc, uint64_t input) -> uint64_t {
+        acc += input * P2; acc = (acc << 31) | (acc >> 33); return acc * P1;
+    };
+    auto mergeRound = [&](uint64_t acc, uint64_t v) -> uint64_t {
+        acc ^= round(0, v); return acc * P1 + P4;
+    };
+    const auto* p = reinterpret_cast<const unsigned char*>(key.data());
+    const auto* const end = p + key.size();
+    const size_t len = key.size();
+    uint64_t h;
+    if (len >= 32) {
+        uint64_t v1=P1+P2, v2=P2, v3=0, v4=0-P1;
+        const auto* const limit=end-32;
+        do { v1=round(v1,read64(p)); p+=8; v2=round(v2,read64(p)); p+=8;
+             v3=round(v3,read64(p)); p+=8; v4=round(v4,read64(p)); p+=8; } while(p<=limit);
+        h=((v1<<1)|(v1>>63))+((v2<<7)|(v2>>57))+((v3<<12)|(v3>>52))+((v4<<18)|(v4>>46));
+        h=mergeRound(h,v1); h=mergeRound(h,v2); h=mergeRound(h,v3); h=mergeRound(h,v4);
+    } else h=P5;
+    h += len;
+    while (p+8 <= end) { uint64_t k=round(0,read64(p)); h^=k; h=((h<<27)|(h>>37))*P1+P4; p+=8; }
+    if (p+4 <= end) { h^=static_cast<uint64_t>(read32(p))*P1; h=((h<<23)|(h>>41))*P2+P3; p+=4; }
+    while (p<end) { h^=static_cast<uint64_t>(*p)*P5; h=((h<<11)|(h>>53))*P1; ++p; }
+    h^=h>>33; h*=P2; h^=h>>29; h*=P3; h^=h>>32;
+    return h;
 }
 
 uint64_t getHash(const std::string& key, HashType type) {
@@ -173,8 +154,8 @@ uint64_t getHash(const std::string& key, HashType type) {
         case HashType::MURMURHASH3:
             return murmurHash3(key);
 
-        case HashType::FXHASH:
-            return fxHash(key);
+        case HashType::FNV1A_AVALANCHE:
+            return fnv1aAvalancheHash(key);
 
         case HashType::XXHASH:
             return xxHash(key);
@@ -186,10 +167,10 @@ uint64_t getHash(const std::string& key, HashType type) {
 std::string hashTypeToString(HashType type) {
     switch (type) {
         case HashType::MURMURHASH3:
-            return "MurmurHash3";
+            return "MurmurHash3 x64/128 (low 64 bits)";
 
-        case HashType::FXHASH:
-            return "FxHash";
+        case HashType::FNV1A_AVALANCHE:
+            return "FNV-1a + avalanche";
 
         case HashType::XXHASH:
             return "xxHash";

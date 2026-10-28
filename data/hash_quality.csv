@@ -1,0 +1,4 @@
+HashFunction,Keys,Buckets,OccupiedBuckets,CollisionPairs,MaxBucketOccupancy,MeanBucketOccupancy,ChiSquareStatistic,DegreesOfFreedom,ChiSquarePValueApprox
+MurmurHash3 x64/128 (low 64 bits),50000,8192,8173,152889,17,6.10352,8290.67,8191,0.434937
+FNV-1a + avalanche,50000,8192,8180,152125,18,6.10352,8040.32,8191,1
+xxHash,50000,8192,8169,152853,19,6.10352,8278.87,8191,0.490633
